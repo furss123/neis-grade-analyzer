@@ -6,7 +6,7 @@ import { parseClassNumber, studentId } from '../normalization/normalizeStudent'
 import type { WorkbookView } from './detectWorkbook'
 
 const HEADER_WORDS = ['성명', '이름', '학번', '번호', '반/번호', '원점수', '성취도', '석차등급', '석차', '동석차수', '합계', '평균', '정기시험', '수행평가']
-const NON_SUBJECT = ['번호', '학번', '성명', '이름', '반/번호', '합계', '평균', '총점', '석차', '수강자수', '원점수', '성취도', '등급', '비고', '결시', '반영비율']
+const NON_SUBJECT = ['번호', '학번', '성명', '이름', '교과목', '반/번호', '합계', '평균', '총점', '석차', '수강자수', '원점수', '성취도', '등급', '비고', '결시', '반영비율']
 
 const PRIORITY: Record<DocumentType, Record<ScoreKind, number>> = {
   'regular-exam-class': { exam: 300, performance: 0, final: 0 },
@@ -48,7 +48,7 @@ function inferContext(view: WorkbookView): StandardGradeData['context'] {
   const text = view.sheets.flatMap((sheet) => sheet.rows.slice(0, 12).flat()).map(normalizeText).join(' ')
   const schoolYear = Number(text.match(/(20\d{2})\s*학년도/)?.[1]) || undefined
   const semester = Number(text.match(/([12])\s*학기/)?.[1]) || undefined
-  const grade = Number(text.match(/(\d+)\s*학년/)?.[1]) || undefined
+  const grade = Number(text.match(/(\d+)\s*학년(?!도)/)?.[1]) || undefined
   const className = text.match(/(\d+)\s*반/)?.[1]
   const lectureRoom = text.match(/(\d+)\s*강의실/)?.[1]
   const examName = text.match(/((?:1|2)\s*차(?:\s*지필평가|\s*시험)?|중간고사|기말고사)/)?.[1]?.replace(/\s/g, '')
@@ -89,6 +89,20 @@ function isReserved(value: string): boolean {
   return !value || NON_SUBJECT.some((word) => compactText(value) === compactText(word) || compactText(value).startsWith(compactText(word)))
 }
 
+function isSignatureText(value: string): boolean {
+  const compact = compactText(value)
+  return /(?:담임|담당)?교사[:：]?/.test(compact) || /^\(?[가-힣]{2,4}\)?인$/.test(compact)
+}
+
+function isSubjectCandidate(value: string): boolean {
+  const compact = compactText(value)
+  const isDocumentMetadata = /20\d{2}학년도/.test(compact)
+    || /^\d+학년\d+반$/.test(compact)
+    || /(?:정기시험|성적).*일람표/.test(compact)
+    || compact.startsWith('※')
+  return !isReserved(value) && !isSignatureText(value) && !isDocumentMetadata
+}
+
 function buildColumns(rows: unknown[][], headerRow: number, type: DocumentType, singleSubject?: string): ColumnInfo[] {
   const header = rows[headerRow] ?? []
   const width = Math.max(header.length, ...rows.slice(Math.max(0, headerRow - 3), headerRow + 1).map((row) => row.length))
@@ -105,18 +119,18 @@ function buildColumns(rows: unknown[][], headerRow: number, type: DocumentType, 
       }
       return ''
     }).filter(Boolean)
-    const group = [...horizontalAncestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS) && !isReserved(value))
-      ?? [...ancestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS) && !isReserved(value))
+    const group = [...horizontalAncestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS) && isSubjectCandidate(value))
+      ?? [...ancestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS) && isSubjectCandidate(value))
       ?? ''
     const combined = [...horizontalAncestors, current].filter(Boolean).join(' ')
     const attribute = isAttribute(combined)
     const kind = inferKind(current, type) ?? inferKind(combined, type)
     let subjectName = singleSubject
 
-    if (!subjectName && group && !isReserved(group)) subjectName = normalizeSubject(group).name
     const regularSubjectColumn = ['regular-exam-class', 'regular-exam-subject'].includes(type) && !matchesAny(current, ['정기시험', '지필평가', '고사', '1차', '2차', '중간', '기말'])
-    if (!subjectName && !isReserved(current) && (!kind || regularSubjectColumn) && !attribute) subjectName = normalizeSubject(current).name
-    if (!subjectName && kind && group && !isReserved(group)) subjectName = normalizeSubject(group).name
+    const semesterSubjectColumn = type === 'semester-summary' && isSubjectCandidate(current) && !attribute
+    if (!subjectName && isSubjectCandidate(current) && (!kind || regularSubjectColumn || semesterSubjectColumn) && !attribute) subjectName = normalizeSubject(current).name
+    if (!subjectName && group && isSubjectCandidate(group)) subjectName = normalizeSubject(group).name
 
     const weightMatch = current.match(/\(\s*(\d+(?:\.\d+)?)\s*%\s*\)\s*$/)
     const assessmentName = current && !isReserved(current)
@@ -189,7 +203,7 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
         if (rawValue === '' || rawValue === null || rawValue === undefined) continue
         if (column.attribute) {
           const attributeSubjectId = column.subjectName ? subjectId(normalizeSubject(column.subjectName).name) : undefined
-          const target = attributeSubjectId ? latestBySubject.get(attributeSubjectId) : latestRecord
+          const target = attributeSubjectId ? latestBySubject.get(attributeSubjectId) ?? latestRecord : latestRecord
           if (!target) continue
           if (column.attribute === 'achievement') target.achievement = normalizeText(rawValue)
           else if (column.attribute === 'weight') target.weight = normalizePercent(rawValue)

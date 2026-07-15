@@ -72,4 +72,29 @@ describe('범용 통합문서 판별', () => {
     const parsed = parseWorkbookView(view, 'virtual', '시험.xlsx', 'regular-exam-class')
     expect(parsed.data.scores.map((score) => score.score)).toEqual([88])
   })
+
+  it('담임교사 서명보다 현재 열의 실제 과목명을 우선한다', () => {
+    const examView = workbookFromRows([
+      ['2026.07.15.'],
+      ['', '', '정기시험 학급별 일람표'],
+      ['2026학년도 1학기 1학년 4반'],
+      ['고사 : 1차시험 담임교사 : (김효성) 인'],
+      ['번호', '', '성명', '국어:공통국어1(4)', '수학:공통수학1(4)', '합계', '평균'],
+      [1, '', '학생가', 88, 77, 165, 82.5],
+    ])
+    const exam = parseWorkbookView(examView, 'virtual-exam', '1차.xlsx', 'regular-exam-class')
+
+    expect(exam.data.subjects.map((subject) => subject.name)).toEqual(['공통국어1', '공통수학1'])
+    expect(exam.data.subjects.some((subject) => subject.name.includes('김효성'))).toBe(false)
+
+    const summaryView = workbookFromRows([
+      ['학기말 성적 종합일람표'],
+      ['2026학년도 1학기 1학년 4반 담임교사 : (김효성) 인'],
+      ['번호', '성명', '교과목', '공통국어1(4)', '공통수학1(4)'],
+      [1, '학생가', '원점수', 88, 77],
+    ])
+    const summary = parseWorkbookView(summaryView, 'virtual-summary', '학기말.xlsx', 'semester-summary')
+    expect(summary.data.subjects.map((subject) => subject.name)).toEqual(['공통국어1', '공통수학1'])
+    expect(summary.data.context.grade).toBe(1)
+  })
 })
