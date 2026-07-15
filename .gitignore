@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env*
+*.xlsx
+*.xls
+*.csv
+!public/sample/README.md
+coverage/
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

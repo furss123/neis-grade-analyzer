@@ -1,0 +1,28 @@
+{
+  "name": "neis-grade-analyzer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "echarts": "^6.0.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4",
+    "vitest": "^3.2.4"
+  }
+}
