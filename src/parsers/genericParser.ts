@@ -1,6 +1,6 @@
 import type { DocumentType, ParsedFile, ScoreKind, ScoreRecord, StandardGradeData, Student, Subject } from '../types/grade'
 import { compactText, matchesAny, normalizeText } from '../normalization/normalizeHeaders'
-import { normalizePercent, normalizeScore } from '../normalization/normalizeScore'
+import { normalizeGradeScore, normalizePercent, normalizeScore } from '../normalization/normalizeScore'
 import { normalizeSubject, subjectId } from '../normalization/normalizeSubject'
 import { parseClassNumber, studentId } from '../normalization/normalizeStudent'
 import type { WorkbookView } from './detectWorkbook'
@@ -207,7 +207,7 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
         const sId = subjectId(normalizedSubject.name)
         subjectMap.set(sId, { id: sId, ...normalizedSubject })
 
-        const score = normalizeScore(rawValue)
+        const score = normalizeGradeScore(rawValue)
         if (score === undefined) continue
         const kind = column.kind ?? (type === 'semester-summary' ? 'final' : type === 'all-subjects' ? 'final' : 'exam')
         const assessmentName = context.examName && kind === 'exam' && ['regular-exam-class', 'regular-exam-subject'].includes(type)

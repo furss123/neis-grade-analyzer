@@ -105,6 +105,7 @@ summary { cursor: pointer; }
 .metric small { color: #89929f; font-size: 10px; }
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, .8fr); gap: 16px; }
 .chart-panel { min-width: 0; }
+.chart-scroll-hint { color: var(--muted); font-size: 10px; }
 .ranking-panel ol { list-style: none; padding: 0; margin: 0; }
 .ranking-panel li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #edf0f2; }
 .ranking-panel li:last-child { border-bottom: 0; }

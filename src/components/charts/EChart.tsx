@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { BarChart, PieChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { DataZoomComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { init, use, type EChartsCoreOption } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 
-use([BarChart, PieChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
+use([BarChart, PieChart, GridComponent, TooltipComponent, LegendComponent, DataZoomComponent, CanvasRenderer])
 
 interface EChartProps {
   option: EChartsCoreOption

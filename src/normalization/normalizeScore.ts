@@ -8,6 +8,15 @@ export function normalizeScore(value: unknown): number | undefined {
   return Number.isFinite(number) ? number : undefined
 }
 
+export function isGradeScore(value: number | undefined): value is number {
+  return value !== undefined && Number.isFinite(value) && value >= 0 && value <= 100
+}
+
+export function normalizeGradeScore(value: unknown): number | undefined {
+  const number = normalizeScore(value)
+  return isGradeScore(number) ? number : undefined
+}
+
 export function normalizePercent(value: unknown): number | undefined {
   const number = normalizeScore(value)
   if (number === undefined) return undefined

@@ -62,4 +62,14 @@ describe('범용 통합문서 판별', () => {
     expect(parsed.data.scores.find((score) => score.assessmentName === '토론하기')).toMatchObject({ subjectId: '공통국어1', weight: 20 })
     expect(parsed.data.scores.find((score) => score.subjectId === '공통국어1' && score.kind === 'final')).toMatchObject({ achievement: 'B', gradeRank: 3, rank: 4, tieCount: 2, enrollmentCount: 30 })
   })
+
+  it('0~100 범위를 벗어난 숫자는 성적 점수로 저장하지 않는다', () => {
+    const view = workbookFromRows([
+      ['2026학년도 1학기 정기시험 학급별 일람표'],
+      ['번호', '성명', '국어', '수학'],
+      [1, '학생가', 88, 2026000428],
+    ])
+    const parsed = parseWorkbookView(view, 'virtual', '시험.xlsx', 'regular-exam-class')
+    expect(parsed.data.scores.map((score) => score.score)).toEqual([88])
+  })
 })

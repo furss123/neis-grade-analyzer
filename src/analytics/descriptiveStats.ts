@@ -8,7 +8,7 @@ export interface DescriptiveStats {
 }
 
 export function descriptiveStats(values: Array<number | undefined>): DescriptiveStats {
-  const numbers = values.filter((value): value is number => value !== undefined && Number.isFinite(value)).sort((a, b) => a - b)
+  const numbers = values.filter(isGradeScore).sort((a, b) => a - b)
   if (!numbers.length) return { count: 0, mean: 0, median: 0, min: 0, max: 0, standardDeviation: 0 }
   const mean = numbers.reduce((sum, value) => sum + value, 0) / numbers.length
   const middle = Math.floor(numbers.length / 2)
@@ -27,3 +27,4 @@ export function descriptiveStats(values: Array<number | undefined>): Descriptive
 function round(value: number): number {
   return Math.round(value * 100) / 100
 }
+import { isGradeScore } from '../normalization/normalizeScore'
