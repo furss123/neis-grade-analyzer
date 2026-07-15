@@ -134,6 +134,12 @@ tbody tr:hover { background: #f9fcfb; }
 .empty-state > span { display: block; font-size: 50px; color: var(--green); }
 
 .student-analysis-screen { display: grid; gap: 16px; }
+.early-warning-panel { border-color: #edc9cd; background: linear-gradient(135deg, #fff, #fff8f8); }
+.warning-count, .warning-badge { color: #b54251; background: #fdecef; border-radius: 99px; padding: 5px 9px; font-size: 10px; font-weight: 700; }
+.early-warning-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.early-warning-list button { display: grid; gap: 3px; text-align: left; border: 1px solid #eddadd; background: #fff; border-radius: 8px; padding: 12px; color: var(--navy); }
+.early-warning-list button:hover { border-color: #cf7180; }
+.early-warning-list span, .early-warning-list small { color: var(--muted); font-size: 9px; line-height: 1.45; }
 .student-directory { min-width: 0; }
 .student-picker { display: flex; align-items: center; gap: 10px; margin: -3px 0 16px; color: var(--muted); font-size: 11px; font-weight: 600; }
 .student-picker select { min-width: 220px; }
@@ -147,7 +153,7 @@ tbody tr:hover { background: #f9fcfb; }
 .student-report-header p { margin: 0; color: var(--muted); font-size: 12px; }
 .report-seal { display: grid; justify-items: end; color: #8b96a5; font-size: 9px; letter-spacing: .15em; }
 .report-seal span { color: var(--green); font: 700 27px Georgia, serif; letter-spacing: 0; }
-.student-report-metrics { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: 9px; margin: 22px 0 30px; overflow: hidden; }
+.student-report-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); border: 1px solid var(--line); border-radius: 9px; margin: 22px 0 30px; overflow: hidden; }
 .student-report-metrics > div { display: grid; gap: 5px; padding: 15px 17px; border-right: 1px solid var(--line); }
 .student-report-metrics > div:last-child { border-right: 0; }
 .student-report-metrics span { color: var(--muted); font-size: 10px; }
@@ -158,12 +164,37 @@ tbody tr:hover { background: #f9fcfb; }
 .report-section-title small { color: var(--green); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
 .report-section-title h3 { margin: 2px 0 0; font-size: 17px; }
 .report-insights ul { display: grid; gap: 7px; margin: 0; padding: 16px 18px 16px 35px; border-radius: 8px; background: #eff7f4; color: #3c594f; font-size: 12px; line-height: 1.55; }
+.report-warning { padding: 16px 18px; border: 1px solid #eabec5; border-radius: 8px; background: #fff5f6; color: #8e3441; }
+.report-warning > strong { font-size: 13px; }
+.report-warning ul { margin: 8px 0; padding-left: 20px; font-size: 11px; }
+.report-warning p { margin: 8px 0 0; color: #8b5c64; font-size: 9px; line-height: 1.55; }
 .report-table th { cursor: default; font-size: 10px; }
 .report-table td { font-size: 11px; }
 .report-table td:first-child { display: grid; }
 .report-table td:first-child small { color: var(--muted); font-size: 8px; }
 .report-table .positive { color: var(--green); font-weight: 700; }
 .report-table .negative { color: #c54d5b; font-weight: 700; }
+.report-table .gap-alert, .report-table .risk-cell { color: #b83f4e; font-weight: 700; background: #fff5f6; }
+.report-table .risk-cell small { color: #b83f4e; }
+.report-profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.report-profile-grid > div { min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 16px; }
+.strength-radar { display: block; width: min(270px, 100%); margin: -10px auto; }
+.strength-radar text { fill: #526070; font: 600 10px 'Noto Sans KR', sans-serif; }
+.report-caption { color: var(--muted); font-size: 9px; line-height: 1.55; margin: 8px 0 0; }
+.trend-list { display: grid; gap: 12px; padding-top: 12px; }
+.trend-list > div { display: grid; grid-template-columns: 65px 1fr 54px; align-items: center; gap: 8px; font-size: 10px; }
+.trend-list i { height: 7px; max-width: 100%; border-radius: 99px; background: linear-gradient(90deg, #8bd1b5, var(--green)); }
+.trend-list > strong { padding-top: 8px; border-top: 1px solid var(--line); font-size: 11px; }
+.trend-list .positive { color: var(--green); }
+.trend-list .negative { color: #c54d5b; }
+.report-notes > p { margin: 0; padding: 16px; background: #f5f8f7; border-left: 3px solid var(--green); font: 700 13px/1.8 'Gowun Batang', serif; }
+.report-notes > small { display: block; margin-top: 8px; color: var(--muted); font-size: 9px; }
+.simulation-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.simulation-grid > div { display: grid; gap: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.simulation-grid strong, .simulation-grid span { font-size: 10px; }
+.simulation-grid b { font: 700 14px 'Gowun Batang', serif; }
+.simulation-grid b em { font-size: 14px; }
+.simulation-grid small { color: var(--muted); font-size: 8px; }
 .assessment-subject-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
 .assessment-subject-card { border: 1px solid var(--line); border-radius: 8px; padding: 13px; }
 .assessment-subject-card > strong { display: block; font-size: 12px; margin-bottom: 9px; }
@@ -241,6 +272,7 @@ footer { min-height: 60px; padding: 20px clamp(20px, 5vw, 72px); display: flex; 
   .student-report-actions, .student-report-header { align-items: flex-start; flex-direction: column; }
   .student-report { padding: 20px 14px; }
   .student-report-metrics, .assessment-subject-grid { grid-template-columns: 1fr; }
+  .early-warning-list, .report-profile-grid, .simulation-grid { grid-template-columns: 1fr; }
   .student-report-metrics > div { border-right: 0; }
   .student-picker { align-items: stretch; flex-direction: column; }
   .student-picker select { min-width: 0; width: 100%; }

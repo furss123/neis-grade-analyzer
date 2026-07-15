@@ -27,7 +27,13 @@ export const useGradeStore = create<GradeStore>((set) => ({
   updateContext: (id, key, value) => set((state) => ({
     files: state.files.map((file) => file.id === id ? {
       ...file,
-      data: { ...file.data, context: { ...file.data.context, [key]: ['schoolYear', 'semester', 'grade'].includes(key) ? Number(value) || undefined : value || undefined } },
+      data: {
+        ...file.data,
+        context: { ...file.data.context, [key]: ['schoolYear', 'semester', 'grade'].includes(key) ? Number(value) || undefined : value || undefined },
+        scores: file.data.scores.map((score) => key === 'schoolYear' || key === 'semester'
+          ? { ...score, [key]: Number(value) || undefined }
+          : score),
+      },
     } : file),
   })),
   clear: () => set({ files: [] }),

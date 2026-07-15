@@ -24,4 +24,14 @@ describe('중복 점수 통합', () => {
     expect(result.data.scores[0].score).toBe(85)
     expect(result.conflicts).toHaveLength(1)
   })
+
+  it('같은 평가라도 학기가 다르면 누적 기록으로 보존한다', () => {
+    const base = { studentId: 's1', subjectId: 'math', kind: 'final' as const, assessmentName: '학기말', sourceId: '', sourcePriority: 100 }
+    const result = mergeParsedFiles([
+      file('first', { ...base, id: 'first-score', sourceId: 'first', score: 70, schoolYear: 2025, semester: 2 }),
+      file('second', { ...base, id: 'second-score', sourceId: 'second', score: 80, schoolYear: 2026, semester: 1 }),
+    ])
+    expect(result.data.scores).toHaveLength(2)
+    expect(result.conflicts).toHaveLength(0)
+  })
 })

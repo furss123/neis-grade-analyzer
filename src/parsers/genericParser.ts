@@ -5,7 +5,7 @@ import { normalizeSubject, subjectId } from '../normalization/normalizeSubject'
 import { parseClassNumber, studentId } from '../normalization/normalizeStudent'
 import type { WorkbookView } from './detectWorkbook'
 
-const HEADER_WORDS = ['성명', '이름', '학번', '번호', '반/번호', '원점수', '성취도', '석차등급', '합계', '평균', '정기시험', '수행평가']
+const HEADER_WORDS = ['성명', '이름', '학번', '번호', '반/번호', '원점수', '성취도', '석차등급', '석차', '동석차수', '합계', '평균', '정기시험', '수행평가']
 const NON_SUBJECT = ['번호', '학번', '성명', '이름', '반/번호', '합계', '평균', '총점', '석차', '수강자수', '원점수', '성취도', '등급', '비고', '결시', '반영비율']
 
 const PRIORITY: Record<DocumentType, Record<ScoreKind, number>> = {
@@ -22,7 +22,7 @@ interface ColumnInfo {
   header: string
   group: string
   kind?: ScoreKind
-  attribute?: 'achievement' | 'gradeRank' | 'rank' | 'enrollmentCount' | 'weight' | 'classAverage' | 'overallAverage'
+  attribute?: 'achievement' | 'gradeRank' | 'rank' | 'enrollmentCount' | 'weight' | 'classAverage' | 'overallAverage' | 'tieCount' | 'rankWithTie'
   subjectName?: string
   assessmentName?: string
 }
@@ -64,6 +64,8 @@ function singleSubjectFromTitle(view: WorkbookView): string | undefined {
 }
 
 function isAttribute(header: string): ColumnInfo['attribute'] | undefined {
+  if (matchesAny(header, ['석차(동석차수)', '석차 (동석차수)', '석차/동석차수'])) return 'rankWithTie'
+  if (matchesAny(header, ['동석차수', '동석차 수'])) return 'tieCount'
   if (matchesAny(header, ['석차등급'])) return 'gradeRank'
   if (matchesAny(header, ['수강자수', '수강자 수'])) return 'enrollmentCount'
   if (matchesAny(header, ['성취도'])) return 'achievement'
@@ -164,23 +166,30 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
       }
       studentMap.set(student.id, student)
       const latestBySubject = new Map<string, ScoreRecord>()
+      let latestRecord: ScoreRecord | undefined
 
       for (const column of columns) {
         if (column.index === nameColumn || column.index === idColumn || column.index === classNumberColumn || column.index === numberColumn) continue
         const rawValue = row[column.index]
-        if (rawValue === '' || rawValue === null || rawValue === undefined || !column.subjectName) continue
-        const normalizedSubject = normalizeSubject(column.subjectName)
-        const sId = subjectId(normalizedSubject.name)
-        subjectMap.set(sId, { id: sId, ...normalizedSubject })
-
+        if (rawValue === '' || rawValue === null || rawValue === undefined) continue
         if (column.attribute) {
-          const target = latestBySubject.get(sId)
+          const attributeSubjectId = column.subjectName ? subjectId(normalizeSubject(column.subjectName).name) : undefined
+          const target = attributeSubjectId ? latestBySubject.get(attributeSubjectId) : latestRecord
           if (!target) continue
           if (column.attribute === 'achievement') target.achievement = normalizeText(rawValue)
           else if (column.attribute === 'weight') target.weight = normalizePercent(rawValue)
+          else if (column.attribute === 'rankWithTie') {
+            const values = normalizeText(rawValue).match(/\d+(?:\.\d+)?/g)?.map(Number) ?? []
+            target.rank = values[0]
+            target.tieCount = values[1]
+          }
           else target[column.attribute] = normalizeScore(rawValue)
           continue
         }
+        if (!column.subjectName) continue
+        const normalizedSubject = normalizeSubject(column.subjectName)
+        const sId = subjectId(normalizedSubject.name)
+        subjectMap.set(sId, { id: sId, ...normalizedSubject })
 
         const score = normalizeScore(rawValue)
         if (score === undefined) continue
@@ -193,11 +202,14 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
           kind,
           assessmentName,
           score,
+          schoolYear: context.schoolYear,
+          semester: context.semester,
           sourceId: fileId,
           sourcePriority: PRIORITY[type][kind],
         }
         data.scores.push(record)
         latestBySubject.set(sId, record)
+        latestRecord = record
       }
     }
   }

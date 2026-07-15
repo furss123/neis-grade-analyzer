@@ -33,4 +33,14 @@ describe('범용 통합문서 판별', () => {
     expect(parsed.data.subjects.map((subject) => subject.name)).toEqual(expect.arrayContaining(['수학', '국어']))
     expect(parsed.data.scores).toHaveLength(4)
   })
+
+  it('석차(동석차수) 값을 석차와 동석차수로 분리한다', () => {
+    const view = workbookFromRows([
+      ['2026학년도 1학기 1학년 성적'],
+      ['성명', '수학', '석차(동석차수)'],
+      ['가온', 88, '3(2)'],
+    ])
+    const parsed = parseWorkbookView(view, 'virtual', '학기말.xlsx', 'semester-summary')
+    expect(parsed.data.scores[0]).toMatchObject({ rank: 3, tieCount: 2, schoolYear: 2026, semester: 1 })
+  })
 })

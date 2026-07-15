@@ -10,6 +10,7 @@ export interface StudentRow {
   strongest?: string
   weakest?: string
   records: number
+  warningCount?: number
 }
 
 interface StudentTableProps {
@@ -27,6 +28,7 @@ export function StudentTable({ rows, selectedId, onSelect }: StudentTableProps) 
     { accessorKey: 'strongest', header: '강점 과목' },
     { accessorKey: 'weakest', header: '보완 과목' },
     { accessorKey: 'records', header: '평가 수' },
+    { accessorKey: 'warningCount', header: '조기경보', cell: ({ row }: { row: { original: StudentRow } }) => row.original.warningCount ? <span className="warning-badge">{row.original.warningCount}건</span> : '—' },
     { id: 'action', header: '심층 분석', enableSorting: false, cell: ({ row }: { row: { original: StudentRow } }) => <button className="table-action" onClick={() => onSelect(row.original.id)}>{selectedId === row.original.id ? '보고 있음' : '심층 보기'}</button> },
   ], [onSelect, selectedId])
   const table = useReactTable({ data: rows, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() })

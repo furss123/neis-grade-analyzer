@@ -5,7 +5,7 @@ export function mergeParsedFiles(files: ParsedFile[]): { data: StandardGradeData
   const subjects = new Map(files.flatMap((file) => file.data.subjects).map((subject) => [subject.id, subject]))
   const grouped = new Map<string, ScoreRecord[]>()
   for (const record of files.flatMap((file) => file.data.scores)) {
-    const key = [record.studentId, record.subjectId, record.kind, record.assessmentName.replace(/\s/g, '')].join('|')
+    const key = [record.schoolYear ?? 'unknown-year', record.semester ?? 'unknown-semester', record.studentId, record.subjectId, record.kind, record.assessmentName.replace(/\s/g, '')].join('|')
     grouped.set(key, [...(grouped.get(key) ?? []), record])
   }
 
@@ -19,7 +19,9 @@ export function mergeParsedFiles(files: ParsedFile[]): { data: StandardGradeData
 
   return {
     data: {
-      context: files.find((file) => Object.keys(file.data.context).length)?.data.context ?? {},
+      context: [...files]
+        .filter((file) => Object.keys(file.data.context).length)
+        .sort((a, b) => ((b.data.context.schoolYear ?? 0) * 10 + (b.data.context.semester ?? 0)) - ((a.data.context.schoolYear ?? 0) * 10 + (a.data.context.semester ?? 0)))[0]?.data.context ?? {},
       students: [...students.values()],
       subjects: [...subjects.values()],
       scores,

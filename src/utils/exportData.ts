@@ -12,6 +12,8 @@ export function exportWorkbook(data: StandardGradeData, anonymized = false): voi
     const student = students.get(score.studentId)
     const subject = subjects.get(score.subjectId)
     return {
+      학년도: score.schoolYear ?? data.context.schoolYear,
+      학기: score.semester ?? data.context.semester,
       학년: student?.grade,
       반: student?.className,
       번호: student?.number,
@@ -27,6 +29,7 @@ export function exportWorkbook(data: StandardGradeData, anonymized = false): voi
       석차등급: score.gradeRank,
       석차: score.rank,
       수강자수: score.enrollmentCount,
+      동석차수: score.tieCount,
     }
   })
   const workbook = XLSX.utils.book_new()

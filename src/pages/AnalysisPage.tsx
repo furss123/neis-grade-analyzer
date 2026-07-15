@@ -25,7 +25,8 @@ export function AnalysisPage({ onUpload }: { onUpload: () => void }) {
   const summaries = assessmentSummaries(filteredScores)
   const profiles = studentProfiles(data.students, data.subjects, filteredScores)
   const scoreStats = descriptiveStats(filteredScores.map((score) => score.score))
-  const studentReports = useMemo(() => data.students.map((student) => buildStudentDeepReport(student, data.subjects, data.scores, data.context)), [data])
+  const studentReports = useMemo(() => data.students.map((student) => buildStudentDeepReport(student, data.subjects, data.scores, data.context, data.students)), [data])
+  const studentRows = useMemo(() => profiles.map((row) => ({ ...row, warningCount: studentReports.find((report) => report.student.id === row.id)?.warningReasons.length ?? 0 })), [profiles, studentReports])
   const selectedStudentReport = studentReports.find((report) => report.student.id === selectedStudentId) ?? studentReports[0]
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export function AnalysisPage({ onUpload }: { onUpload: () => void }) {
         <Metric label="활성 분석" value={`${tabs.filter(([, , enabled]) => enabled).length}개`} detail="데이터 필드 기반" />
       </section>
 
-      {tab === 'students' ? <StudentReportCenter reports={studentReports} rows={profiles} selectedReport={selectedStudentReport} printScope={studentPrintScope} onSelect={setSelectedStudentId} onPrint={setStudentPrintScope} />
+      {tab === 'students' ? <StudentReportCenter reports={studentReports} rows={studentRows} selectedReport={selectedStudentReport} printScope={studentPrintScope} onSelect={setSelectedStudentId} onPrint={setStudentPrintScope} />
         : tab === 'change' ? <ExamChanges data={data} />
         : tab === 'achievement' ? <AchievementChart scores={filteredScores} />
         : <section className="dashboard-grid"><article className="panel chart-panel"><div className="section-heading"><div><span className="eyebrow">평균 비교</span><h2>{tab === 'performance' ? '수행평가 영역별 평균' : tab === 'final' ? '학기말 과목별 평균' : tab === 'exam' ? '시험별 평균' : '평가별 성취 현황'}</h2></div></div><EChart option={barOption} height={370} label="평가별 평균 막대그래프" /></article><SummaryList rows={chartRows} subjectNames={subjectNames} /></section>}

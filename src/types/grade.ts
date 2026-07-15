@@ -53,6 +53,9 @@ export interface ScoreRecord {
   enrollmentCount?: number
   classAverage?: number
   overallAverage?: number
+  tieCount?: number
+  schoolYear?: number
+  semester?: number
   sourceId: string
   sourcePriority: number
 }
