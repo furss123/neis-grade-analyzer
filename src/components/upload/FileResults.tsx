@@ -6,7 +6,7 @@ export const TYPE_LABELS: Record<DocumentType, string> = {
   'regular-exam-subject': '정기시험 교과목별 일람표',
   'all-subjects': '전과목 성적 일람표',
   'subject-assessment': '과목 지필·수행 성적 일람표',
-  'semester-summary': '학기말 성적 종합일람표',
+  'semester-summary': '학기말 성적 종합일람표 (기존 형식)',
   unknown: '유형 확인 필요',
 }
 

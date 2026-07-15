@@ -9,8 +9,7 @@ const guides = {
   homeroom: [
     ['한 번의 시험', '정기시험 학급별 일람표'],
     ['시험 1·2차 비교', '정기시험 학급별 일람표 2개'],
-    ['학기 전체 상세', '전과목 성적 일람표'],
-    ['학기말 결과', '학기말 성적 종합일람표'],
+    ['학기 전체 상세·학기말 종합', '전과목 성적 일람표 (수행평가 점수 포함)'],
   ],
   subject: [
     ['특정 시험', '정기시험 교과목별 일람표'],
@@ -55,7 +54,7 @@ export function UploadPage({ onAnalyze }: { onAnalyze: () => void }) {
         <div>
           <span className="eyebrow">브라우저 안에서 끝나는 안전한 분석</span>
           <h1>성적 파일은 그대로,<br /><em>분석은 더 선명하게.</em></h1>
-          <p className="lead">파일의 열 위치나 과목 수가 달라도 내부 구조를 읽어 학생·과목·평가 데이터를 표준화합니다.</p>
+          <p className="lead">파일의 열 위치나 과목 수가 달라도 내부 구조를 읽어 학생·과목·지필·수행평가 데이터를 표준화합니다.</p>
         </div>
         <div className="privacy-card"><span className="privacy-icon">⌁</span><div><strong>개인정보 보호 기본값</strong><p>업로드 파일은 서버에 저장하거나 전송하지 않습니다. 새로고침하면 브라우저 메모리에서 삭제됩니다.</p></div></div>
       </section>
