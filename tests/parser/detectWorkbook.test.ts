@@ -43,4 +43,23 @@ describe('범용 통합문서 판별', () => {
     const parsed = parseWorkbookView(view, 'virtual', '학기말.xlsx', 'semester-summary')
     expect(parsed.data.scores[0]).toMatchObject({ rank: 3, tieCount: 2, schoolYear: 2026, semester: 1 })
   })
+
+  it('병합 정보가 없는 전과목 일람표에서 과목과 지필·수행평가를 가로로 이어받는다', () => {
+    const view = workbookFromRows([
+      ['전과목 성적 일람표 (받은점수기준)'],
+      ['1학년 4반'],
+      ['평가방법(반영비율)', '', '공통국어1(4)', '', '', '', '', '', '', '', '', '', '공통수학1(4)'],
+      ['', '', '정기시험(60.00%)', '', '수행평가(40.00%)', '', '', '', '', '', '', '', '정기시험(60.00%)', '', '수행평가(40.00%)'],
+      ['명칭,영역 (반영비율) 번호,성명', '', '1차시험(30.00%)', '2차시험(30.00%)', '토론하기(20.00%)', '글쓰기(20.00%)', '합계', '원점수', '성취도', '석차등급', '석차(동석차수)', '수강자수', '1차시험(30.00%)', '2차시험(30.00%)', '주제탐구(40.00%)', '합계', '원점수', '성취도', '석차등급', '석차(동석차수)', '수강자수'],
+      [1, '학생가', 80, 70, 90, 85, 79, 79, 'B', 3, '4(2)', 30, 75, 85, 92, 83, 83, 'B', 3, '3(1)', 30],
+    ])
+    const parsed = parseWorkbookView(view, 'virtual', '전과목.xlsx', 'all-subjects')
+
+    expect(parsed.data.students).toHaveLength(1)
+    expect(parsed.data.subjects.map((subject) => subject.name)).toEqual(['공통국어1', '공통수학1'])
+    expect(parsed.data.scores).toHaveLength(9)
+    expect(parsed.data.scores.filter((score) => score.kind === 'performance')).toHaveLength(3)
+    expect(parsed.data.scores.find((score) => score.assessmentName === '토론하기')).toMatchObject({ subjectId: '공통국어1', weight: 20 })
+    expect(parsed.data.scores.find((score) => score.subjectId === '공통국어1' && score.kind === 'final')).toMatchObject({ achievement: 'B', gradeRank: 3, rank: 4, tieCount: 2, enrollmentCount: 30 })
+  })
 })

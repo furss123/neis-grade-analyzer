@@ -25,6 +25,7 @@ interface ColumnInfo {
   attribute?: 'achievement' | 'gradeRank' | 'rank' | 'enrollmentCount' | 'weight' | 'classAverage' | 'overallAverage' | 'tieCount' | 'rankWithTie'
   subjectName?: string
   assessmentName?: string
+  weight?: number
 }
 
 function expandedRows(rows: unknown[][], merges: Array<{ s: { r: number; c: number }; e: { r: number; c: number } }>): unknown[][] {
@@ -95,11 +96,21 @@ function buildColumns(rows: unknown[][], headerRow: number, type: DocumentType, 
 
   for (let index = 0; index < width; index += 1) {
     const current = normalizeText(header[index])
-    const ancestors = rows.slice(Math.max(0, headerRow - 3), headerRow).map((row) => normalizeText(row[index])).filter(Boolean)
-    const group = [...ancestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS)) ?? ''
-    const combined = [...ancestors, current].filter(Boolean).join(' ')
+    const ancestorRows = rows.slice(Math.max(0, headerRow - 3), headerRow)
+    const ancestors = ancestorRows.map((row) => normalizeText(row[index])).filter(Boolean)
+    const horizontalAncestors = ancestorRows.map((row) => {
+      for (let cursor = index; cursor >= 0; cursor -= 1) {
+        const value = normalizeText(row[cursor])
+        if (value) return value
+      }
+      return ''
+    }).filter(Boolean)
+    const group = [...horizontalAncestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS) && !isReserved(value))
+      ?? [...ancestors].reverse().find((value) => !matchesAny(value, HEADER_WORDS) && !isReserved(value))
+      ?? ''
+    const combined = [...horizontalAncestors, current].filter(Boolean).join(' ')
     const attribute = isAttribute(combined)
-    const kind = inferKind(combined, type)
+    const kind = inferKind(current, type) ?? inferKind(combined, type)
     let subjectName = singleSubject
 
     if (!subjectName && group && !isReserved(group)) subjectName = normalizeSubject(group).name
@@ -107,8 +118,11 @@ function buildColumns(rows: unknown[][], headerRow: number, type: DocumentType, 
     if (!subjectName && !isReserved(current) && (!kind || regularSubjectColumn) && !attribute) subjectName = normalizeSubject(current).name
     if (!subjectName && kind && group && !isReserved(group)) subjectName = normalizeSubject(group).name
 
-    const assessmentName = current && !isReserved(current) ? current : kind === 'final' ? '학기말' : current || group
-    result.push({ index, header: current, group, kind, attribute, subjectName, assessmentName })
+    const weightMatch = current.match(/\(\s*(\d+(?:\.\d+)?)\s*%\s*\)\s*$/)
+    const assessmentName = current && !isReserved(current)
+      ? current.replace(/\(\s*\d+(?:\.\d+)?\s*%\s*\)\s*$/, '').trim()
+      : kind === 'final' ? '학기말' : current || group
+    result.push({ index, header: current, group, kind, attribute, subjectName, assessmentName, weight: weightMatch ? Number(weightMatch[1]) : undefined })
   }
   return result
 }
@@ -136,10 +150,11 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
     }
 
     const columns = buildColumns(rows, headerRow, type, singleSubject)
-    const nameColumn = columns.find((column) => matchesAny(column.header, ['성명', '학생명', '이름']))?.index
+    const combinedIdentityColumn = columns.find((column) => matchesAny(column.header, ['번호']) && matchesAny(column.header, ['성명', '학생명', '이름']))
+    const nameColumn = combinedIdentityColumn ? combinedIdentityColumn.index + 1 : columns.find((column) => matchesAny(column.header, ['성명', '학생명', '이름']))?.index
     const idColumn = columns.find((column) => matchesAny(column.header, ['학번']))?.index
     const classNumberColumn = columns.find((column) => matchesAny(column.header, ['반/번호']))?.index
-    const numberColumn = columns.find((column) => compactText(column.header) === '번호')?.index
+    const numberColumn = combinedIdentityColumn?.index ?? columns.find((column) => compactText(column.header) === '번호')?.index
     if (nameColumn === undefined) {
       warnings.push(`${sheet.name}: 성명 열을 찾지 못했습니다.`)
       continue
@@ -187,6 +202,7 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
           continue
         }
         if (!column.subjectName) continue
+        if (type === 'all-subjects' && compactText(column.header) === '합계') continue
         const normalizedSubject = normalizeSubject(column.subjectName)
         const sId = subjectId(normalizedSubject.name)
         subjectMap.set(sId, { id: sId, ...normalizedSubject })
@@ -194,7 +210,9 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
         const score = normalizeScore(rawValue)
         if (score === undefined) continue
         const kind = column.kind ?? (type === 'semester-summary' ? 'final' : type === 'all-subjects' ? 'final' : 'exam')
-        const assessmentName = context.examName && kind === 'exam' ? context.examName : normalizeText(column.assessmentName) || (kind === 'final' ? '학기말' : '정기시험')
+        const assessmentName = context.examName && kind === 'exam' && ['regular-exam-class', 'regular-exam-subject'].includes(type)
+          ? context.examName
+          : normalizeText(column.assessmentName) || (kind === 'final' ? '학기말' : '정기시험')
         const record: ScoreRecord = {
           id: `${fileId}-${sheet.name}-${rowIndex}-${column.index}`,
           studentId: student.id,
@@ -202,6 +220,7 @@ export function parseWorkbookView(view: WorkbookView, fileId: string, fileName: 
           kind,
           assessmentName,
           score,
+          weight: column.weight,
           schoolYear: context.schoolYear,
           semester: context.semester,
           sourceId: fileId,
