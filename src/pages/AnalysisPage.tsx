@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { assessmentSummaries } from '../analytics/assessmentAnalysis'
 import { achievementDistribution } from '../analytics/achievementAnalysis'
 import { descriptiveStats } from '../analytics/descriptiveStats'
 import { compareExams } from '../analytics/examComparison'
 import { studentProfiles } from '../analytics/studentProfiles'
-import { StudentTable } from '../components/tables/StudentTable'
+import { buildStudentDeepReport } from '../analytics/studentDeepAnalysis'
 import { EChart } from '../components/charts/EChart'
+import { StudentReportCenter, type StudentPrintScope } from '../components/reports/StudentReportCenter'
 import { useGradeStore } from '../stores/useGradeStore'
 import { exportWorkbook } from '../utils/exportData'
 import { inferCapabilities, mergeParsedFiles } from '../utils/mergeData'
@@ -18,10 +19,27 @@ export function AnalysisPage({ onUpload }: { onUpload: () => void }) {
   const capabilities = useMemo(() => inferCapabilities(data), [data])
   const [tab, setTab] = useState<Tab>('overview')
   const [subjectFilter, setSubjectFilter] = useState('all')
+  const [selectedStudentId, setSelectedStudentId] = useState<string>()
+  const [studentPrintScope, setStudentPrintScope] = useState<StudentPrintScope>(null)
   const filteredScores = subjectFilter === 'all' ? data.scores : data.scores.filter((score) => score.subjectId === subjectFilter)
   const summaries = assessmentSummaries(filteredScores)
   const profiles = studentProfiles(data.students, data.subjects, filteredScores)
   const scoreStats = descriptiveStats(filteredScores.map((score) => score.score))
+  const studentReports = useMemo(() => data.students.map((student) => buildStudentDeepReport(student, data.subjects, data.scores, data.context)), [data])
+  const selectedStudentReport = studentReports.find((report) => report.student.id === selectedStudentId) ?? studentReports[0]
+
+  useEffect(() => {
+    if (!studentPrintScope) return
+    document.body.dataset.printMode = 'student-reports'
+    const finishPrinting = () => setStudentPrintScope(null)
+    const timer = window.setTimeout(() => window.print(), 100)
+    window.addEventListener('afterprint', finishPrinting)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('afterprint', finishPrinting)
+      delete document.body.dataset.printMode
+    }
+  }, [studentPrintScope])
 
   if (!data.scores.length) {
     return <main className="empty-state"><span>⌁</span><h1>분석할 점수 데이터가 없습니다</h1><p>파일 유형과 헤더 판별 결과를 확인하거나 다른 나이스 파일을 올려 주세요.</p><button className="button primary" onClick={onUpload}>업로드로 돌아가기</button></main>
@@ -58,8 +76,8 @@ export function AnalysisPage({ onUpload }: { onUpload: () => void }) {
       {conflicts.length > 0 && <div className="conflict-banner"><strong>점수 충돌 {conflicts.length}건</strong><span>파일 우선순위에 따라 신뢰도가 높은 값을 사용했습니다. 원본 파일의 산출 기준과 마감 시점을 확인해 주세요.</span></div>}
 
       <div className="analysis-toolbar no-print">
-        <div className="tabs">{tabs.filter(([, , enabled]) => enabled).map(([value, label]) => <button className={tab === value ? 'active' : ''} onClick={() => setTab(value)} key={value}>{label}</button>)}</div>
-        <select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">전체 과목</option>{data.subjects.map((subject) => <option value={subject.id} key={subject.id}>{subject.name}</option>)}</select>
+        <div className="tabs">{tabs.filter(([, , enabled]) => enabled).map(([value, label]) => <button className={tab === value ? 'active' : ''} onClick={() => { setTab(value); if (value === 'students') setSubjectFilter('all') }} key={value}>{label}</button>)}</div>
+        {tab !== 'students' && <select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">전체 과목</option>{data.subjects.map((subject) => <option value={subject.id} key={subject.id}>{subject.name}</option>)}</select>}
       </div>
 
       <section className="metric-grid">
@@ -69,7 +87,7 @@ export function AnalysisPage({ onUpload }: { onUpload: () => void }) {
         <Metric label="활성 분석" value={`${tabs.filter(([, , enabled]) => enabled).length}개`} detail="데이터 필드 기반" />
       </section>
 
-      {tab === 'students' ? <section className="panel"><div className="section-heading"><div><span className="eyebrow">학생 프로필</span><h2>강점과 보완 과목</h2></div></div><StudentTable rows={profiles} /></section>
+      {tab === 'students' ? <StudentReportCenter reports={studentReports} rows={profiles} selectedReport={selectedStudentReport} printScope={studentPrintScope} onSelect={setSelectedStudentId} onPrint={setStudentPrintScope} />
         : tab === 'change' ? <ExamChanges data={data} />
         : tab === 'achievement' ? <AchievementChart scores={filteredScores} />
         : <section className="dashboard-grid"><article className="panel chart-panel"><div className="section-heading"><div><span className="eyebrow">평균 비교</span><h2>{tab === 'performance' ? '수행평가 영역별 평균' : tab === 'final' ? '학기말 과목별 평균' : tab === 'exam' ? '시험별 평균' : '평가별 성취 현황'}</h2></div></div><EChart option={barOption} height={370} label="평가별 평균 막대그래프" /></article><SummaryList rows={chartRows} subjectNames={subjectNames} /></section>}

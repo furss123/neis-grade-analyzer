@@ -118,6 +118,10 @@ table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th { color: var(--muted); font-weight: 600; text-align: left; background: #f7f9fa; cursor: pointer; }
 th, td { padding: 12px 14px; border-bottom: 1px solid #e7ebee; white-space: nowrap; }
 tbody tr:hover { background: #f9fcfb; }
+.sort-button { width: 100%; border: 0; background: transparent; color: inherit; font-weight: inherit; text-align: left; padding: 0; }
+.table-action { border: 1px solid #b8d8cc; background: #eff8f5; color: var(--green); border-radius: 6px; padding: 5px 9px; font-size: 10px; font-weight: 700; }
+.selected-row { background: #edf8f4; }
+.selected-row .table-action { background: var(--green); color: #fff; }
 .change-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
 .change-card { border: 1px solid #e2e7ea; border-radius: 9px; padding: 13px; display: grid; grid-template-columns: 1fr auto; }
 .change-card div { display: grid; }
@@ -128,6 +132,48 @@ tbody tr:hover { background: #f9fcfb; }
 .empty-inline, .empty-state { color: var(--muted); text-align: center; }
 .empty-state { padding-top: 140px !important; }
 .empty-state > span { display: block; font-size: 50px; color: var(--green); }
+
+.student-analysis-screen { display: grid; gap: 16px; }
+.student-directory { min-width: 0; }
+.student-picker { display: flex; align-items: center; gap: 10px; margin: -3px 0 16px; color: var(--muted); font-size: 11px; font-weight: 600; }
+.student-picker select { min-width: 220px; }
+.student-report-panel { padding: 0; overflow: hidden; }
+.student-report-actions { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 24px; background: #f4f8f7; border-bottom: 1px solid var(--line); }
+.student-report-actions .eyebrow { margin-bottom: 3px; }
+.student-report-actions > div:first-child { display: grid; }
+.student-report { background: #fff; color: var(--navy); padding: 34px; }
+.student-report-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; padding-bottom: 24px; border-bottom: 2px solid var(--navy); }
+.student-report-header h2 { margin: 0 0 7px; font: 700 34px/1.2 'Gowun Batang', serif; }
+.student-report-header p { margin: 0; color: var(--muted); font-size: 12px; }
+.report-seal { display: grid; justify-items: end; color: #8b96a5; font-size: 9px; letter-spacing: .15em; }
+.report-seal span { color: var(--green); font: 700 27px Georgia, serif; letter-spacing: 0; }
+.student-report-metrics { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: 9px; margin: 22px 0 30px; overflow: hidden; }
+.student-report-metrics > div { display: grid; gap: 5px; padding: 15px 17px; border-right: 1px solid var(--line); }
+.student-report-metrics > div:last-child { border-right: 0; }
+.student-report-metrics span { color: var(--muted); font-size: 10px; }
+.student-report-metrics strong { font: 700 20px 'Gowun Batang', serif; }
+.student-report > section { margin-bottom: 30px; }
+.report-section-title { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.report-section-title > span { color: #86a99c; font: 700 20px Georgia, serif; }
+.report-section-title small { color: var(--green); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
+.report-section-title h3 { margin: 2px 0 0; font-size: 17px; }
+.report-insights ul { display: grid; gap: 7px; margin: 0; padding: 16px 18px 16px 35px; border-radius: 8px; background: #eff7f4; color: #3c594f; font-size: 12px; line-height: 1.55; }
+.report-table th { cursor: default; font-size: 10px; }
+.report-table td { font-size: 11px; }
+.report-table td:first-child { display: grid; }
+.report-table td:first-child small { color: var(--muted); font-size: 8px; }
+.report-table .positive { color: var(--green); font-weight: 700; }
+.report-table .negative { color: #c54d5b; font-weight: 700; }
+.assessment-subject-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+.assessment-subject-card { border: 1px solid var(--line); border-radius: 8px; padding: 13px; }
+.assessment-subject-card > strong { display: block; font-size: 12px; margin-bottom: 9px; }
+.assessment-subject-card > div { display: grid; gap: 5px; }
+.assessment-subject-card span { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 9px; padding-top: 5px; border-top: 1px solid #edf0f2; }
+.assessment-subject-card small { color: var(--muted); font-size: 9px; }
+.assessment-subject-card b { font-size: 11px; }
+.assessment-subject-card em { font: 500 8px 'Noto Sans KR', sans-serif; color: var(--green); }
+footer.student-report-footer { min-height: 0; padding: 13px 0 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; color: #8b94a0; font-size: 8px; }
+.print-report-root { display: none; }
 
 .narrow-page { max-width: 860px; }
 .narrow-page h1 { font-size: clamp(36px, 5vw, 56px); margin-bottom: 20px; }
@@ -170,6 +216,8 @@ footer { min-height: 60px; padding: 20px clamp(20px, 5vw, 72px); display: flex; 
   .role-copy h1 { font-size: 43px; }
   .analysis-header { align-items: flex-start; flex-direction: column; }
   .change-grid { grid-template-columns: repeat(2, 1fr); }
+  .student-report-metrics { grid-template-columns: repeat(3, 1fr); }
+  .student-report-metrics > div { border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 580px) {
@@ -190,11 +238,31 @@ footer { min-height: 60px; padding: 20px clamp(20px, 5vw, 72px); display: flex; 
   .role-card ul { display: grid; }
   .role-privacy { white-space: normal; text-align: center; width: 90%; }
   footer { flex-direction: column; }
+  .student-report-actions, .student-report-header { align-items: flex-start; flex-direction: column; }
+  .student-report { padding: 20px 14px; }
+  .student-report-metrics, .assessment-subject-grid { grid-template-columns: 1fr; }
+  .student-report-metrics > div { border-right: 0; }
+  .student-picker { align-items: stretch; flex-direction: column; }
+  .student-picker select { min-width: 0; width: 100%; }
 }
 
 @media print {
+  @page { size: A4 portrait; margin: 10mm; }
   body { background: #fff; }
   .no-print, footer { display: none !important; }
   main:not(.role-page) { width: 100%; padding: 10px; }
   .panel, .metric { box-shadow: none; break-inside: avoid; }
+  body[data-print-mode="student-reports"] .topbar,
+  body[data-print-mode="student-reports"] .analysis-page > :not(.student-analysis-section),
+  body[data-print-mode="student-reports"] .student-analysis-screen,
+  body[data-print-mode="student-reports"] .app-footer { display: none !important; }
+  body[data-print-mode="student-reports"] .analysis-page,
+  body[data-print-mode="student-reports"] .student-analysis-section { width: 100%; margin: 0; padding: 0 !important; }
+  body[data-print-mode="student-reports"] .print-report-root { display: block !important; }
+  body[data-print-mode="student-reports"] .student-report { padding: 0; page-break-after: always; break-after: page; }
+  body[data-print-mode="student-reports"] .student-report:last-child { page-break-after: auto; break-after: auto; }
+  body[data-print-mode="student-reports"] .student-report > section,
+  body[data-print-mode="student-reports"] .assessment-subject-card,
+  body[data-print-mode="student-reports"] .report-table tr { break-inside: avoid; }
+  body[data-print-mode="student-reports"] footer.student-report-footer { display: flex !important; }
 }

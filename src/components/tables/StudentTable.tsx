@@ -12,7 +12,13 @@ export interface StudentRow {
   records: number
 }
 
-export function StudentTable({ rows }: { rows: StudentRow[] }) {
+interface StudentTableProps {
+  rows: StudentRow[]
+  selectedId?: string
+  onSelect: (studentId: string) => void
+}
+
+export function StudentTable({ rows, selectedId, onSelect }: StudentTableProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'mean', desc: true }])
   const columns = useMemo(() => [
     { accessorKey: 'name', header: '학생' },
@@ -21,14 +27,15 @@ export function StudentTable({ rows }: { rows: StudentRow[] }) {
     { accessorKey: 'strongest', header: '강점 과목' },
     { accessorKey: 'weakest', header: '보완 과목' },
     { accessorKey: 'records', header: '평가 수' },
-  ], [])
+    { id: 'action', header: '심층 분석', enableSorting: false, cell: ({ row }: { row: { original: StudentRow } }) => <button className="table-action" onClick={() => onSelect(row.original.id)}>{selectedId === row.original.id ? '보고 있음' : '심층 보기'}</button> },
+  ], [onSelect, selectedId])
   const table = useReactTable({ data: rows, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() })
 
   return (
     <div className="table-wrap">
       <table>
-        <thead>{table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === 'asc' ? ' ↑' : header.column.getIsSorted() === 'desc' ? ' ↓' : ''}</th>)}</tr>)}</thead>
-        <tbody>{table.getRowModel().rows.map((row) => <tr key={row.id}>{row.getVisibleCells().map((cell) => <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}</tbody>
+        <thead>{table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id}>{header.column.getCanSort() ? <button className="sort-button" onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === 'asc' ? ' ↑' : header.column.getIsSorted() === 'desc' ? ' ↓' : ''}</button> : flexRender(header.column.columnDef.header, header.getContext())}</th>)}</tr>)}</thead>
+        <tbody>{table.getRowModel().rows.map((row) => <tr className={row.original.id === selectedId ? 'selected-row' : ''} key={row.id}>{row.getVisibleCells().map((cell) => <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}</tbody>
       </table>
     </div>
   )
